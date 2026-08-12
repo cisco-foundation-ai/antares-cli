@@ -1,0 +1,91 @@
+# SPDX-FileCopyrightText: 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: "unit tests"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }} @ ${{ ((github.ref_name == 'main') && github.run_id) || '' }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+jobs:
+  unit-tests:
+    name: "unit tests"
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    env:
+      COLUMNS: "160"
+      TERM: "xterm-256color"
+    steps:
+      - name: "Harden runner"
+        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: "Check out repository"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: "Set up uv"
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+
+      - name: "Set up Python"
+        run: uv python install 3.11
+
+      - name: "Install dependencies"
+        run: uv sync --frozen --group dev
+
+      - name: "Install read-only command dependencies"
+        run: sudo apt-get update && sudo apt-get install --yes ripgrep
+
+      - name: "Run tests"
+        run: uv run pytest -q -p no:cacheprovider
+
+      - name: "Build release artifacts"
+        run: uv build
+
+      - name: "Verify provider-neutral wheel"
+        run: |
+          wheel_path="$(find dist -name '*.whl' -print -quit)"
+          uv run python tools/verify_public_wheel.py "$wheel_path"
+
+      - name: "Smoke-test the built wheel across supported Python versions"
+        run: |
+          wheel_path="$(find dist -name '*.whl' -print -quit)"
+          uv python install 3.11 3.12 3.13 3.14
+          for version in 3.11 3.12 3.13 3.14; do
+            environment=".wheel-smoke-${version}"
+            uv venv --python "$version" "$environment"
+            uv pip install --python "$environment/bin/python" "$wheel_path"
+            "$environment/bin/python" -m compileall -q "$environment/lib"
+            "$environment/bin/antares" --version
+            "$environment/bin/antares" --help >/dev/null
+            "$environment/bin/antares" plan src/antares_cli --format json >/dev/null
+            "$environment/bin/antares" completion bash | grep -q _ANTARES_COMPLETE
+          done
+
+      - name: "Record release artifact checksums"
+        run: sha256sum dist/* > dist/SHA256SUMS
+
+      - name: "Upload verified release artifacts"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: antares-cli-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30

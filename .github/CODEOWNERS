@@ -1,0 +1,5 @@
+# Default reviewers for all project files.
+* @arthur-goldblatt @didierRI
+
+# Repository administration changes require organization-admin review.
+.github/settings.yml @cisco-foundation-ai/foundation-ai-admin

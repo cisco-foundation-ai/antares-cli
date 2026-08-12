@@ -1,0 +1,70 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+# These settings are synced to GitHub by https://probot.github.io/apps/settings/
+
+repository:
+  name: antares-cli
+
+  description: |-
+    Model-assisted, file-level vulnerability localization for source repositories,
+    powered by Foundation AI Antares models.
+
+  topics: security, vulnerability-localization, cli, static-analysis, foundation-ai
+
+  # Visibility is intentionally unmanaged so the release candidate cannot be
+  # made public by repository-settings automation before final human review.
+
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_downloads: true
+
+  default_branch: main
+
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true
+
+  delete_branch_on_merge: true
+
+  enable_automated_security_fixes: true
+  enable_vulnerability_alerts: true
+
+teams:
+  - name: cisco-foundation-ai/foundation-ai-admin
+    permission: admin
+
+collaborators:
+  - username: arthur-goldblatt
+    permission: maintain
+  - username: didierRI
+    permission: maintain
+
+branches:
+  - name: main
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+        require_last_push_approval: true
+        dismissal_restrictions:
+          users: []
+          teams: []
+      required_status_checks:
+        strict: true
+        contexts:
+          - "unit tests"
+          - "lint and typecheck"
+          - "repository standards"
+          - "dependency review"
+          - "license compliance"
+      enforce_admins: true
+      required_linear_history: true
+      required_conversation_resolution: true
+      allow_force_pushes: false
+      allow_deletions: false
+      restrictions: null

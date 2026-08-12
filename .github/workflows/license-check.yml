@@ -1,0 +1,60 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: "license check"
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  get-source-files:
+    name: "collect licensed source files"
+    runs-on: ubuntu-22.04
+    outputs:
+      files: ${{ steps.list-files.outputs.files }}
+    steps:
+      - name: "Harden runner"
+        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: "Check out repository"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+
+      - name: "Collect source files"
+        id: list-files
+        run: |
+          files="$(find src tests tools .github -type f \
+            \( -name '*.py' -o -name '*.yml' -o -name '*.yaml' \) \
+            -print | tr '\n' ' ')"
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+
+  license-compliance:
+    name: "license compliance"
+    runs-on: ubuntu-22.04
+    needs: get-source-files
+    steps:
+      - name: "Harden runner"
+        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: "Check out repository"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+
+      - name: "Run license compliance check"
+        uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0
+        with:
+          args: lint-file ${{ needs.get-source-files.outputs.files }}

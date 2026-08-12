@@ -1,0 +1,132 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: "release"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions: read-all
+
+concurrency:
+  group: "release-${{ github.ref }}"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: "build and verify release artifacts"
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: "Harden runner"
+        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: "Check out repository"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: "Set up uv"
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+
+      - name: "Set up Python"
+        run: uv python install 3.11
+
+      - name: "Verify tag matches package version"
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="v$(uv run python -c 'import antares_cli; print(antares_cli.__version__)')"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "Tag $TAG does not match package version $VERSION"
+            exit 1
+          fi
+
+      - name: "Install dependencies"
+        run: uv sync --frozen --group dev
+
+      - name: "Run tests"
+        run: uv run pytest -q -p no:cacheprovider
+
+      - name: "Build release artifacts"
+        run: uv build
+
+      - name: "Verify provider-neutral wheel"
+        run: |
+          wheel_path="$(find dist -name '*.whl' -print -quit)"
+          uv run python tools/verify_public_wheel.py "$wheel_path"
+
+      - name: "Record release artifact checksums"
+        run: sha256sum dist/* > SHA256SUMS
+
+      - name: "Upload verified distributions"
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: "antares-cli-distributions-${{ github.ref_name }}"
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: "Upload release checksums"
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: "antares-cli-checksums-${{ github.ref_name }}"
+          path: SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: "publish public release"
+    needs: build
+    if: >-
+      github.repository == 'cisco-foundation-ai/antares-cli' &&
+      github.event.repository.visibility == 'public'
+    runs-on: ubuntu-22.04
+    environment:
+      name: release
+      url: "https://pypi.org/project/antares-cli/"
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: "Harden runner"
+        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: "Download verified distributions"
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: "antares-cli-distributions-${{ github.ref_name }}"
+          path: dist/
+
+      - name: "Download release checksums"
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: "antares-cli-checksums-${{ github.ref_name }}"
+          path: ./
+
+      - name: "Publish to PyPI"
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        with:
+          packages-dir: dist/
+          attestations: true
+
+      - name: "Create GitHub Release"
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          files: |
+            dist/*
+            SHA256SUMS
+          generate_release_notes: true

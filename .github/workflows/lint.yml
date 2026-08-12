@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: "lint"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }} @ ${{ ((github.ref_name == 'main') && github.run_id) || '' }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+jobs:
+  lint:
+    name: "lint and typecheck"
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: "Harden runner"
+        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: "Check out repository"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: "Set up uv"
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+
+      - name: "Set up Python"
+        run: uv python install 3.11
+
+      - name: "Install dependencies"
+        run: uv sync --frozen --group dev
+
+      - name: "Run ruff"
+        run: uv run ruff check --no-cache .
+
+      - name: "Check formatting"
+        run: uv run ruff format --check .
+
+      - name: "Run mypy"
+        run: uv run mypy --no-incremental src
+
+  repository-standards:
+    name: "repository standards"
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: read
+      statuses: write
+    steps:
+      - name: "Harden runner"
+        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: "Check out repository"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: "Run repository standards checks"
+        uses: super-linter/super-linter@4ce20838b8ab83717e78138c5b3a1407148e0918 # v8.7.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IGNORE_GITIGNORED_FILES: true
+          LINTER_RULES_PATH: ".github/linters"
+          ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: false
+          GITHUB_ACTIONS_CONFIG_FILE: ".actionlint.yml"
+          MARKDOWN_CONFIG_FILE: ".markdownlint.yml"
+          TRIVY_CONFIG_FILE: ".trivy.yml"
+          YAML_CONFIG_FILE: ".yamllint.yml"
+          VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_TRIVY: true
+          VALIDATE_YAML: true
