@@ -1,0 +1,27 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+default: true
+extends: null
+
+MD013:
+  line_length: 100
+  code_blocks: false
+  tables: false
+  headings: false
+  strict: false
+  stern: false
+
+MD024:
+  siblings_only: true
+
+MD025:
+  front_matter_title: ""
+
+MD033:
+  allowed_elements: ["details", "summary"]
+
+MD041:
+  front_matter_title: ""

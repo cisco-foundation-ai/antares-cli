@@ -1,0 +1,16 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+disable-telemetry: true
+exit-code: 1
+exit-on-eol: 2
+scan:
+  scanners:
+    - vuln
+    - misconfig
+    - secret
+  skip-dirs:
+    - "**/.venv"
+    - "**/.worktrees"

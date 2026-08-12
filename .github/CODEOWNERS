@@ -1,0 +1,5 @@
+# Default reviewers for all project files.
+* @cisco-foundation-ai/antares
+
+# Repository administration changes require organization-admin review.
+.github/settings.yml @cisco-foundation-ai/foundation-ai-admin

@@ -1,0 +1,22 @@
+# serializer version: 1
+# name: test_finding_serialization_and_thresholds
+  '''
+  ╭──────────────────────────────────────────── FINDING ─────────────────────────────────────────────╮
+  │ Title           SQL Injection                                                                    │
+  │ File path       app.py                                                                           │
+  │ Submission rank 1                                                                                │
+  │ CWE IDs         CWE-89                                                                           │
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+  ╭────────────────────────────────────────── SCAN SUMMARY ──────────────────────────────────────────╮
+  │ Status                Complete                                                                   │
+  │ Findings              1                                                                          │
+  │ Affected files        1                                                                          │
+  │ CWEs checked          1                                                                          │
+  │ CWE IDs with findings CWE-89                                                                     │
+  │ Duration              1.20s                                                                      │
+  │ Total tool calls      3                                                                          │
+  │ Investigation trace   /tmp/trace.investigation.jsonl                                             │
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+  
+  '''
+# ---

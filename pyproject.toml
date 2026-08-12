@@ -1,0 +1,71 @@
+[build-system]
+requires = ["hatchling==1.31.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "antares-cli"
+dynamic = ["version"]
+description = "Model-assisted file-level vulnerability localization for source repositories"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [{ name = "Cisco Foundation AI" }]
+keywords = ["security", "vulnerability-localization", "cli"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Security",
+]
+dependencies = [
+    "httpx>=0.27,<0.29",
+    "prompt-toolkit>=3.0,<4",
+    "pydantic>=2.0,<3",
+    "pydantic-settings>=2.0,<3",
+    "rich>=15.0,<16",
+    "textual>=3.0,<9",
+    "typer>=0.15.4,<0.28",
+]
+
+[project.urls]
+Homepage = "https://github.com/cisco-foundation-ai/antares-cli"
+Repository = "https://github.com/cisco-foundation-ai/antares-cli"
+Issues = "https://github.com/cisco-foundation-ai/antares-cli/issues"
+Changelog = "https://github.com/cisco-foundation-ai/antares-cli/blob/main/CHANGELOG.md"
+
+[dependency-groups]
+dev = ["mypy", "pytest", "pytest-asyncio", "ruff", "syrupy"]
+
+[project.scripts]
+antares = "antares_cli.main:app"
+
+[tool.hatch.version]
+path = "src/antares_cli/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/antares_cli"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "A", "SIM", "RUF"]
+ignore = ["E501", "B008", "RUF012", "RUF001"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
