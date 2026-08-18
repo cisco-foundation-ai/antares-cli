@@ -3,7 +3,7 @@ requires = ["hatchling==1.31.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "antares-cli"
+name = "cisco-antares-cli"
 dynamic = ["version"]
 description = "Model-assisted file-level vulnerability localization for source repositories"
 readme = "README.md"

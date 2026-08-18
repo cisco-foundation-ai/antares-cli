@@ -33,7 +33,7 @@ Antares CLI requires:
 Install the released CLI from PyPI:
 
 ```bash
-uv tool install antares-cli
+uv tool install cisco-antares-cli
 ```
 
 Install from a source checkout instead:
@@ -45,7 +45,7 @@ uv tool install .
 Or install a downloaded wheel:
 
 ```bash
-uv tool install ./dist/antares_cli-*.whl
+uv tool install ./dist/cisco_antares_cli-*.whl
 ```
 
 For development:
@@ -54,7 +54,7 @@ For development:
 uv sync --group dev
 ```
 
-Use `uv tool upgrade antares-cli` to upgrade an existing PyPI installation.
+Use `uv tool upgrade cisco-antares-cli` to upgrade an existing PyPI installation.
 
 ## Serve and configure a model
 
