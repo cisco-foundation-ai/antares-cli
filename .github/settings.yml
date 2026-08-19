@@ -42,6 +42,8 @@ collaborators:
     permission: maintain
   - username: didierRI
     permission: maintain
+  - username: fraserburch
+    permission: maintain
 
 branches:
   - name: main
