@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 
 # Antares CLI
 
+[![PyPI version](https://img.shields.io/pypi/v/cisco-antares-cli.svg)](https://pypi.org/project/cisco-antares-cli/)
+
 Model-assisted, file-level vulnerability localization for source repositories,
 powered by Foundation AI Antares models.
 
