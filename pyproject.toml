@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling==1.31.0"]
+requires = ["hatchling==1.33.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -32,7 +32,7 @@ dependencies = [
     "pydantic-settings>=2.0,<3",
     "rich>=15.0,<16",
     "textual>=3.0,<9",
-    "typer>=0.15.4,<0.28",
+    "typer>=0.15.4,<0.29",
 ]
 
 [project.urls]
